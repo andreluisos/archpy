@@ -1,5 +1,5 @@
 # Purpose
-The purpose is to bring more people to Arch Linux by providing a working, easier, flexible, faster installer 
+The purpose is to bring more people to Arch Linux by providing a working, flexible, easier and faster installer 
 than the one officially provided by Arch Linux.
 
 # Installation

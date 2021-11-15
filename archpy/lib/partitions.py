@@ -81,7 +81,7 @@ class Partition:
             Cmd(f'btrfs subvolume create /mnt/snapshots',
                 msg=Message.message('install_23', self.config['language'], '/mnt/snapshots'))
             Cmd(f'umount -R /mnt',
-                msg=Message.message('install_24', self.config['language'], '/mnt/snapshots'))
+                msg=Message.message('install_24', self.config['language']))
             mountpoint = None
             for subvolume in ['root', 'home', 'snapshots']:
                 if subvolume == 'root':
