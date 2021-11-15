@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from inquirer import confirm
+from glob import glob
 
 from archpy import Cmd, Message, SystemInfo, Partition, File, Packages, Bootloader
 
@@ -224,11 +227,11 @@ class Setup:
             msg=Message.message('install_38', self.config['language'], " ".join(self.services)))
 
         if self.config['install_type'] in ['Minimal Gnome']:
-            Cmd('arch-chroot /mnt rm /usr/share/applications/system-config-printer.desktop '
-                '/usr/share/applications/bvnc.desktop '
-                '/usr/share/applications/cups.desktop '
-                '/usr/share/applications/bssh.desktop '
-                '/usr/share/applications/avahi-discover.desktop '
-                '/usr/share/applications/qv4l2.desktop '
-                '/usr/share/applications/qvidcap.desktop '
-                '/usr/share/applications/lstopo.desktop', quiet=True)
+            for file in glob(f'/mnt/usr/share/applications/*.desktop'):
+                if file in ['/mnt/usr/share/applications/system-config-printer.desktop',
+                            '/mnt/usr/share/applications/bvnc.desktop', '/mnt/usr/share/applications/cups.desktop',
+                            '/mnt/usr/share/applications/cups.desktop', '/mnt/usr/share/applications/bssh.desktop',
+                            '/mnt/usr/share/applications/avahi-discover.desktop',
+                            '/mnt/usr/share/applications/qv4l2.desktop', '/mnt/usr/share/applications/qvidcap.desktop',
+                            '/mnt/usr/share/applications/lstopo.desktop']:
+                    Path(file).unlink(missing_ok=True)
