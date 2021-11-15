@@ -223,7 +223,7 @@ class Setup:
         Cmd(f'arch-chroot /mnt systemctl enable {" ".join(self.services)}',
             msg=Message.message('install_38', self.config['language'], " ".join(self.services)))
 
-        if self.config['install_type'] in ['Minimal Gnome', 'Gnome']:
+        if self.config['install_type'] in ['Minimal Gnome']:
             Cmd('arch-chroot /mnt rm /usr/share/applications/system-config-printer.desktop '
                 '/usr/share/applications/bvnc.desktop '
                 '/usr/share/applications/cups.desktop '
@@ -231,4 +231,4 @@ class Setup:
                 '/usr/share/applications/avahi-discover.desktop '
                 '/usr/share/applications/qv4l2.desktop '
                 '/usr/share/applications/qvidcap.desktop '
-                '/usr/share/applications/lstopo.desktop')
+                '/usr/share/applications/lstopo.desktop', quiet=True)
