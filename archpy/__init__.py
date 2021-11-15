@@ -10,7 +10,7 @@ from .lib.config import *
 from .lib.booatloaders import *
 from .lib.installation import *
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Module arguments.
 arguments = {}
