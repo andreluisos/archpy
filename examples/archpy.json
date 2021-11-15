@@ -1,0 +1,23 @@
+{
+    "language": "en_US",
+    "keyboard_layout": "us",
+    "timezone": "America/New_York",
+    "mirror": "United States",
+    "install_type": "Minimal Gnome",
+    "swap": "Swap on ZRAM",
+    "filesystem": "BTRFS",
+    "kernels": [
+        "linux"
+    ],
+    "storage_devices": [
+        "/dev/sda"
+    ],
+    "username": "archpy",
+    "full_name": "Archpy",
+    "hostname": "archpy",
+    "disk_encryption": true,
+    "extra_packages": [
+        "flatpak",
+        "firefox"
+    ]
+}
