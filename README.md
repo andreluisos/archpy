@@ -61,3 +61,6 @@ archpy generate config
 
 # Help
 Need people to test and report bugs [here](https://github.com/andreluisos/archpy/issues).
+
+# In action
+[![Watch the video](https://j.gifs.com/Y7VBk9.gif)](https://youtu.be/_0MXHQJ_ePI)
