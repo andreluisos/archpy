@@ -3,8 +3,10 @@ The purpose is to bring more people to Arch Linux by providing a working, flexib
 than the one officially provided by Arch Linux.
 
 # Installation
+[Boot into your Arch Linux live environment](https://wiki.archlinux.org/title/installation_guide#Pre-installation) as
+if you would normally do to manually install it.
 
-Once booted into Arch installer iso:
+Once you booted into Arch Linux's installation image, run these commands:
 ```shell
 pacman -Syq --noconfirm python3 python-pip git
 ```
@@ -19,7 +21,6 @@ pip install git+https://github.com/andreluisos/archpy.git
 # Hardware requirements
 **I've only tested this on UEFI with SSD**.
 Need people to test on other hardware and report issues [here](https://github.com/andreluisos/archpy/issues).
-
 
 # Software requirements
 Only two non official Python packages are being used: [inquirer](https://github.com/magmax/python-inquirer) and 
