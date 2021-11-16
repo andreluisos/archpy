@@ -14,6 +14,9 @@ from archpy import Cmd, Message, File, SystemInfo, TZ_COUNTRY, Packages
 class Config:
 
     def __init__(self):
+        self.sysinfo = SystemInfo().sysinfo
+        if self.sysinfo == 'BIOS':
+            Message('red_alert').print('You are using BIOS, but only UEFI is supported at this moment. Leaving.')
         self.config = {
             "language": None,
             "keyboard_layout": None,
@@ -22,8 +25,9 @@ class Config:
             "install_type": None,
             "swap": None,
             "filesystem": None,
-            "kernels": [],
             "storage_devices": [],
+            "raid": None,
+            "kernels": [],
             "username": None,
             "full_name": None,
             "hostname": None,
@@ -56,9 +60,11 @@ class Config:
         self.available_install_types = ['Minimal', 'Minimal Gnome', 'Minimal KDE Plasma', 'Gnome', 'KDE Plasma']
         self.available_kernels = {'Stable': "linux", 'Longterm': "linux-lts", 'Hardened': "linux-hardened",
                                   'Zen': "linux-zen"}
-        self.available_devices = SystemInfo().sysinfo['storage_devices']
+        self.available_devices = self.sysinfo['storage_devices']
         self.available_swaps = ['Swap on ZRAM', 'Swap on partition']
         self.available_filesystems = ['BTRFS']
+        self.available_raids = ['raid0', 'raid1', 'raid3', 'raid5', 'raid10']
+
         self.userpw = None
         self.diskpw = None
 
@@ -103,18 +109,6 @@ class Config:
                          choices=self.available_kernels,
                          default='Stable') if kernel in self.available_kernels]
 
-    def set_devices(self):
-        while True:
-            storage_devices = checkbox(
-                message=Message.message('user_input_05', self.config['language']),
-                choices=self.available_devices
-            )
-            if not storage_devices:
-                Message('red_alert').print(Message.message('user_input_06', self.config['language']))
-                continue
-            else:
-                return storage_devices
-
     def set_disk_encryption(self):
         while True:
             disk_encryption1 = password(Message.message('user_input_15', self.config['language'],
@@ -143,6 +137,23 @@ class Config:
             choices=self.available_filesystems,
             default='BTRFS'
         )
+
+    def set_devices(self):
+        while True:
+            storage_devices = checkbox(
+                message=Message.message('user_input_05', self.config['language']),
+                choices=self.available_devices
+            )
+            if not storage_devices:
+                Message('red_alert').print(Message.message('user_input_06', self.config['language']))
+                continue
+            else:
+                self.config['storage_devices'] = storage_devices
+                break
+        if len(self.config['storage_devices']) > 1 and self.config['filesystem'] == "BTRFS":
+            if confirm(Message.message('user_input_30', self.config['language']), default=False):
+                pass
+
 
     def set_username(self):
         fullname = unidecode(self.config['full_name']).split(' ')
@@ -211,8 +222,6 @@ class Config:
 
         self.config['kernels'] = self.set_kernels()
 
-        self.config['storage_devices'] = self.set_devices()
-
         self.config['disk_encryption'] = confirm(Message.message('user_input_16', self.config['language']),
                                                  default=False)
 
@@ -222,6 +231,8 @@ class Config:
         self.config['swap'] = self.set_swap()
 
         self.config['filesystem'] = self.set_filesystem()
+
+        self.set_devices()
 
         self.config['full_name'] = self.set_full_name()
 

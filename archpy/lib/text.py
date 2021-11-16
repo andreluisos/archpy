@@ -205,6 +205,16 @@ class Message:
                 "pt_BR": f'Pacotes extras, se desejar (separados por espaço)',
             },
 
+            "user_input_30": {
+                "en_US": f"Would you like to create a raid array?",
+                "pt_BR": f'Gostaria de criar um raid array?',
+            },
+
+            "user_input_31": {
+                "en_US": f"What raid mode would you like to use (0, 1, 3, 5, 10)?",
+                "pt_BR": f'Qual modo de raid você gostaria de usar (0, 1, 3, 5, 10)?',
+            },
+
             "install_01": {
                 "en_US": "##### INSTALATION PARAMETERS #####",
                 "pt_BR": "##### PARÂMETROS DE INSTALAÇÃO #####",

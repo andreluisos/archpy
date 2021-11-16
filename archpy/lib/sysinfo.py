@@ -1,5 +1,6 @@
 from archpy import Cmd, Message
 from re import sub
+from pathlib import Path
 
 
 class SystemInfo:
@@ -8,7 +9,8 @@ class SystemInfo:
             'cpu_vendor': None,
             'gfx_cards': {},
             'total_ram': None,
-            'storage_devices': []
+            'storage_devices': [],
+            'firmware_interface': None
         }
 
         if "intel" in Cmd('cat /proc/cpuinfo').stdout.lower():
@@ -26,3 +28,7 @@ class SystemInfo:
         self.sysinfo['storage_devices'] = [device for device in
                                            sub(r'[0-9]+', '', Cmd('lsblk -dp', 'grep -o "^/dev[^ ]*"').stdout).split(
                                                '\n') if device not in ['/dev/loop', '/dev/sr']]
+        if Path('/sys/firmware/efi').exists():
+            self.sysinfo['firmware_interface'] = 'UEFI'
+        else:
+            self.sysinfo['firmware_interface'] = 'BIOS'
