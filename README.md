@@ -20,7 +20,9 @@ pip install git+https://github.com/andreluisos/archpy.git
 
 # Hardware requirements
 **I've only tested this on UEFI with SSD**.
+
 Need people to test on other hardware and report issues [here](https://github.com/andreluisos/archpy/issues).
+
 **Currently working on UEFI systems only**.
 
 # Software requirements
