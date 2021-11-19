@@ -72,7 +72,7 @@ class Partition:
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
 
         if self.config['raid'] and filesystem == 'BTRFS':
-            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -f '
+            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
                 f'{" ".join(system_partitions)}',
                 msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
 
