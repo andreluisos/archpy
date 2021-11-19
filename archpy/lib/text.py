@@ -464,6 +464,11 @@ class Message:
                 "pt_BR": "pacotes extras",
             },
 
+            "install_50": {
+                "en_US": "Creating swap partition",
+                "pt_BR": "Criando partição swap",
+            },
+
         }
 
         return messages[args[0]][args[1]]

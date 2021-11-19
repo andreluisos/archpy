@@ -26,48 +26,45 @@ class Partition:
 
         self.wipe()
 
+        # Partitioning.
+        system_partitions = []
+        for index, device in enumerate(self.config["storage_devices"]):
+            if index == 0:
+                # Create and format EFI partition.
+                Cmd(f'sgdisk '
+                    f'--clear '
+                    f'--new=1:0:+550MiB '
+                    f'--typecode=1:ef00 '
+                    f'--change-name=1:EFI {device}',
+                    msg=Message.message('install_40', self.config['language']))
+                Cmd('mkfs.fat -F32 -n EFI /dev/disk/by-partlabel/EFI',
+                    msg=Message.message('install_21', self.config['language'], 'system', 'FAT32'))
+                if swap_partition:
+                    # Create swap partition.
+                    Cmd(f'sgdisk '
+                        f'--new=2:0:+{ceil(SystemInfo().sysinfo["total_ram"] * 1000 / 1024 ** 3)}GiB '
+                        f'--typecode=2:8200 '
+                        f'--change-name=2:swap {device}',
+                        msg=Message.message('install_50', self.config['language']))
+            # Create system partition on all disks.
+            Cmd(f'sgdisk '
+                f'--new={"3" if swap_partition else "2"}:0:0 '
+                f'--typecode={"3" if swap_partition else "2"}:8300 '
+                f'--change-name={"3" if swap_partition else "2"}:system{index} {device}',
+                msg=Message.message('install_16', self.config['language']))
+            system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
+
         if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
-                f'{" ".join(self.config["storage_devices"])}')
-            disk = f'/dev/disk/by-label/{self.config["hostname"]}'
-        else:
-            disk = self.config["storage_devices"][0]
-
-        Cmd(f'sgdisk '
-            f'--clear '
-            f'--new=1:0:+550MiB '
-            f'--typecode=1:ef00 '
-            f'--change-name=1:EFI {disk}',
-            msg=Message.message('install_40', self.config['language']))
-
-        # Formating EFI.
-        Cmd('mkfs.fat -F32 -n EFI /dev/disk/by-partlabel/EFI',
-            msg=Message.message('install_21', self.config['language'], 'system', 'FAT32'))
-
-        # Partitioning.
-        if swap_partition:
-            Cmd(f'sgdisk '
-                f'--new=2:0:+{ceil(SystemInfo().sysinfo["total_ram"] * 1000 / 1024 ** 3)}GiB '
-                f'--typecode=2:8200 '
-                f'--change-name=2:swap '
-                f'--new=3:0:0 '
-                f'--typecode=3:8300 '
-                f'--change-name=3:system {disk}',
-                msg=Message.message('install_16', self.config['language']))
-        else:
-            Cmd(f'sgdisk '
-                f'--new=2:0:0 '
-                f'--typecode=2:8300 '
-                f'--change-name=2:system {disk}',
-                msg=Message.message('install_16', self.config['language']))
+                f'{" ".join(system_partitions)}')
 
         # Handles the disk encryption.
         if self.config['disk_encryption']:
             Cmd(f'cryptsetup luksFormat --batch-mode --align-payload=8192 -s 256 -c aes-xts-plain64 '
-                f'/dev/disk/by-partlabel/system --key-file {str(self.diskpw)}',
-                msg=Message.message('install_17', self.config['language'], '/dev/disk/by-partlabel/system'))
-            Cmd(f'cryptsetup open --key-file {str(self.diskpw)} /dev/disk/by-partlabel/system system',
-                msg=Message.message('install_18', self.config['language'], '/dev/disk/by-partlabel/system'))
+                f'/dev/disk/by-partlabel/system0 --key-file {str(self.diskpw)}',
+                msg=Message.message('install_17', self.config['language'], '/dev/disk/by-partlabel/system0'))
+            Cmd(f'cryptsetup open --key-file {str(self.diskpw)} /dev/disk/by-partlabel/system0 system0',
+                msg=Message.message('install_18', self.config['language'], '/dev/disk/by-partlabel/system0'))
             if swap_partition:
                 Cmd(f'cryptsetup open --type plain --key-file /dev/urandom /dev/disk/by-partlabel/swap swap',
                     msg=Message.message('install_18', self.config['language'], '/dev/disk/by-partlabel/swap'))
@@ -83,13 +80,12 @@ class Partition:
                 msg=Message.message('install_20', self.config['language']))
 
         # Handles BTRFS partitioning and subvolumes.
-        # ADD RAID SUPPORT
         if filesystem == 'BTRFS':
             if self.config['disk_encryption']:
-                Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system',
-                    msg=Message.message('install_21', self.config['language'], 'system', 'BTRFS'))
+                Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system0',
+                    msg=Message.message('install_21', self.config['language'], 'system0', 'BTRFS'))
             else:
-                Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system',
+                Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system0',
                     msg=Message.message('install_21', self.config['language'], 'system', 'BTRFS'))
             Cmd(f'mount -t btrfs LABEL=system /mnt',
                 msg=Message.message('install_22', self.config['language'], 'system', '/mnt'))
