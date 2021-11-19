@@ -13,7 +13,7 @@ class Partition:
         # and SYSTEM, on the top of LUKS dm-crypt or not, holding root and home data, formatted as BTRFS and
         # Using subvolumes to manage snapshots of the current root and home contents.
 
-        if self.config['raid']:
+        if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L raid -d {self.config["raid"]} -m {self.config["raid"]} -f '
                 f'{" ".join(self.config["storage_devices"])}')
 
