@@ -139,10 +139,16 @@ class Config:
 
     def set_devices(self):
         while True:
-            storage_devices = checkbox(
-                message=Message.message('user_input_05', self.config['language']),
-                choices=self.available_devices
-            )
+            if self.config['filesystem'] == 'BTRFS':
+                storage_devices = checkbox(
+                    message=Message.message('user_input_05', self.config['language']),
+                    choices=self.available_devices
+                )
+            else:
+                storage_devices = list_input(
+                    message=Message.message('user_input_05', self.config['language']),
+                    choices=self.available_devices
+                )
             if not storage_devices:
                 Message('red_alert').print(Message.message('user_input_06', self.config['language']))
                 continue

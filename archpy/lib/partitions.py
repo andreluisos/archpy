@@ -27,7 +27,7 @@ class Partition:
         self.wipe()
 
         if self.config['raid'] and filesystem == 'BTRFS':
-            Cmd(f'mkfs.btrfs -L raid -d {self.config["raid"]} -m {self.config["raid"]} -f '
+            Cmd(f'mkfs.btrfs -L system -d {self.config["raid"]} -m {self.config["raid"]} -f '
                 f'{" ".join(self.config["storage_devices"])}')
 
         Cmd(f'sgdisk '
