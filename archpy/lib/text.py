@@ -316,8 +316,10 @@ class Message:
             },
 
             "52": {
-                "en_US": f"Formatting main partition using {args[2] if len(args) > 2 else None}",
-                "pt_BR": f"Formatando partição principal usando {args[2] if len(args) > 2 else None}",
+                "en_US": f"Formatting {args[2] if len(args) > 2 else None} using "
+                         f"{args[3] if len(args) > 3 else None}",
+                "pt_BR": f"Formatando {args[2] if len(args) > 2 else None} usando "
+                         f"{args[3] if len(args) > 3 else None}",
             },
 
             "53": {
@@ -475,6 +477,16 @@ class Message:
             "83": {
                 "en_US": f"Setting up raid system between {args[2] if len(args) > 2 else None}",
                 "pt_BR": f"Configurando sistema raid entre {args[2] if len(args) > 2 else None}",
+            },
+
+            "84": {
+                "en_US": f"Formatting EFI partition using {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Formatando partição EFI usando {args[2] if len(args) > 2 else None}",
+            },
+
+            "86": {
+                "en_US": f"Mounting main partition at {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Motando partição principal em {args[2] if len(args) > 2 else None}",
             },
 
         }

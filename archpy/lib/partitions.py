@@ -89,7 +89,7 @@ class Partition:
                 Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system0',
                     msg=Message.message('52', self.config['language'], 'BTRFS'))
             Cmd(f'mount -t btrfs LABEL=system /mnt',
-                msg=Message.message('53', self.config['language'], 'system', '/mnt'))
+                msg=Message.message('86', self.config['language'], '/mnt'))
             Cmd(f'btrfs subvolume create /mnt/root',
                 msg=Message.message('54', self.config['language'], '/mnt/root'))
             Cmd(f'btrfs subvolume create /mnt/home',
