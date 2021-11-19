@@ -59,14 +59,6 @@ class Setup:
             Message('red_alert').print('Aborting installation!')
             exit()
 
-        # Erases the disk.
-        # NEEDS TO DO IT BETTER.
-        Cmd('swapoff -a', quiet=True)
-        Cmd('umount -l /mnt', quiet=True)
-        Cmd('cryptsetup close --batch-mode swap', quiet=True)
-        Cmd('cryptsetup close --batch-mode system', quiet=True)
-        Cmd('cryptsetup luksErase --batch-mode /dev/disk/by-partlabel/system', quiet=True)
-
         # Loads keyboard layout.
         Cmd(f"loadkeys {self.config['keyboard_layout']}",
             msg=Message.message('user_input_17', self.config['language'], self.config['keyboard_layout']), quiet=False)
@@ -77,11 +69,6 @@ class Setup:
         Cmd(f"reflector -c '{self.config['mirror']}' --a 24 --delay 24 --p https,http --sort rate -f 10 -l 10 "
             f"--save /etc/pacman.d/mirrorlist",
             msg=Message.message('install_14', self.config['language']))
-
-        # Wiping all storage devices.
-        # NEED TO MAKE SURE EVERYTHING IS WIPED TO REINSTALL.
-        for device in self.config['storage_devices']:
-            Cmd(f'sgdisk --zap-all {device}', msg=Message.message('install_15', self.config['language'], device))
 
         # Partition layout.
         if self.config['filesystem'] == 'BTRFS':

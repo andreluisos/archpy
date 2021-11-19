@@ -8,10 +8,23 @@ class Partition:
         self.config = config
         self.diskpw = diskpw
 
+    def wipe(self):
+        # Erases everything in the disk to prevent partitioning errors.
+        # NEEDS TO DO IT BETTER.
+        Cmd('swapoff -a', quiet=True)
+        Cmd('umount -l /mnt', quiet=True)
+        Cmd('cryptsetup close --batch-mode swap', quiet=True)
+        Cmd('cryptsetup close --batch-mode system', quiet=True)
+        Cmd('cryptsetup luksErase --batch-mode /dev/disk/by-partlabel/system', quiet=True)
+        for device in self.config['storage_devices']:
+            Cmd(f'sgdisk --zap-all {device}', msg=Message.message('install_15', self.config['language'], device))
+
     def layout1(self, filesystem='BTRFS', swap_partition=False):
         # This layout uses 2 or 3 partitions: EFI; SWAP, if enabled (same size as RAM, for hibernation);
         # and SYSTEM, on the top of LUKS dm-crypt or not, holding root and home data, formatted as BTRFS and
         # Using subvolumes to manage snapshots of the current root and home contents.
+
+        self.wipe()
 
         if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L raid -d {self.config["raid"]} -m {self.config["raid"]} -f '

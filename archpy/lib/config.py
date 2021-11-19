@@ -147,6 +147,7 @@ class Config:
                 Message('red_alert').print(Message.message('user_input_06', self.config['language']))
                 continue
             else:
+                self.config['storage_devices'] = storage_devices
                 break
         if len(self.config['storage_devices']) > 1 and self.config['filesystem'] == "BTRFS":
             if confirm(Message.message('user_input_30', self.config['language']), default=False):
@@ -157,7 +158,6 @@ class Config:
                 ).lower()
         else:
             self.config['raid'] = False
-        return storage_devices
 
     def set_username(self):
         fullname = unidecode(self.config['full_name']).split(' ')
@@ -298,7 +298,7 @@ class Config:
             self.config['kernels'] = self.set_kernels()
 
         if any(item not in self.available_devices for item in self.config['storage_devices']):
-            self.config['storage_devices'] = self.set_devices()
+            self.set_devices()
 
         if self.config['full_name'] is None:
             self.config['full_name'] = self.set_full_name()
