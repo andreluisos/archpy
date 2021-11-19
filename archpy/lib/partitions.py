@@ -40,18 +40,34 @@ class Partition:
                 Cmd('mkfs.fat -F32 -n EFI /dev/disk/by-partlabel/EFI',
                     msg=Message.message('52', self.config['language'], 'EFI', 'FAT32'))
                 if swap_partition:
-                    # Create swap partition.
+                    # Create swap and setup partition.
                     Cmd(f'sgdisk '
                         f'--new=2:0:+{ceil(SystemInfo().sysinfo["total_ram"] * 1000 / 1024 ** 3)}GiB '
                         f'--typecode=2:8200 '
                         f'--change-name=2:swap {device}',
                         msg=Message.message('81', self.config['language'], device))
-            # Create system partition on all disks.
+                    if self.config['disk_encryption']:
+                        Cmd(f'cryptsetup open --type plain --key-file /dev/urandom /dev/disk/by-partlabel/swap swap',
+                            msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/swap'))
+                        Cmd(f'mkswap -L swap /dev/mapper/swap', msg=Message.message('50', self.config['language']))
+                    else:
+                        Cmd(f'mkswap -L swap /dev/disk/by-partlabel/swap',
+                            msg=Message.message('50', self.config['language']))
+                    Cmd(f'swapon -L swap',
+                        msg=Message.message('51', self.config['language']))
+            # Create and format system partition on all disks.
             Cmd(f'sgdisk '
                 f'--new={"3" if swap_partition else "2"}:0:0 '
                 f'--typecode={"3" if swap_partition else "2"}:8300 '
                 f'--change-name={"3" if swap_partition else "2"}:system{index} {device}',
                 msg=Message.message('82', self.config['language'], device))
+            if filesystem == 'BTRFS':
+                if self.config['disk_encryption']:
+                    Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system{index}',
+                        msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+                else:
+                    Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system{index}',
+                        msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
 
         if self.config['raid'] and filesystem == 'BTRFS':
@@ -66,28 +82,9 @@ class Partition:
                 msg=Message.message('48', self.config['language'], '/dev/disk/by-partlabel/system0'))
             Cmd(f'cryptsetup open --key-file {str(self.diskpw)} /dev/disk/by-partlabel/system0 system0',
                 msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/system0'))
-            if swap_partition:
-                Cmd(f'cryptsetup open --type plain --key-file /dev/urandom /dev/disk/by-partlabel/swap swap',
-                    msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/swap'))
-
-        # Setting up the swap partition.
-        if swap_partition:
-            if self.config['disk_encryption']:
-                Cmd(f'mkswap -L swap /dev/mapper/swap', msg=Message.message('50', self.config['language']))
-            else:
-                Cmd(f'mkswap -L swap /dev/disk/by-partlabel/swap',
-                    msg=Message.message('50', self.config['language']))
-            Cmd(f'swapon -L swap',
-                msg=Message.message('51', self.config['language']))
 
         # Handles BTRFS partitioning and subvolumes.
         if filesystem == 'BTRFS':
-            if self.config['disk_encryption']:
-                Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system0',
-                    msg=Message.message('87', self.config['language'], 'BTRFS'))
-            else:
-                Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system0',
-                    msg=Message.message('87', self.config['language'], 'BTRFS'))
             Cmd(f'mount -t btrfs LABEL=system /mnt',
                 msg=Message.message('86', self.config['language'], '/mnt'))
             Cmd(f'btrfs subvolume create /mnt/root',

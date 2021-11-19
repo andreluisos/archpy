@@ -490,8 +490,10 @@ class Message:
             },
 
             "87": {
-                "en_US": f"Formatting main partition using {args[2] if len(args) > 2 else None}",
-                "pt_BR": f"Formatando partição principal usando {args[2] if len(args) > 2 else None}",
+                "en_US": f"Formatting main partition in {args[2] if len(args) > 2 else None} "
+                         f"using {args[3] if len(args) > 3 else None}",
+                "pt_BR": f"Formatando partição principal em {args[2] if len(args) > 2 else None} "
+                         f"usando {args[3] if len(args) > 3 else None}",
             },
 
         }
