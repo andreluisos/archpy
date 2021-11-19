@@ -150,12 +150,11 @@ class Config:
                 self.config['storage_devices'] = storage_devices
                 break
         if len(self.config['storage_devices']) > 1 and self.config['filesystem'] == "BTRFS":
-            if confirm(Message.message('user_input_30', self.config['language']), default=True):
-                self.config['raid'] = list_input(
-                    message=Message.message('user_input_31', self.config['language']),
-                    choices=self.available_raids,
-                    default='RAID1'
-                ).lower()
+            self.config['raid'] = list_input(
+                message=Message.message('user_input_31', self.config['language']),
+                choices=self.available_raids,
+                default='RAID1'
+            ).lower()
         else:
             self.config['raid'] = False
 
