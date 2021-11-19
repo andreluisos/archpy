@@ -316,10 +316,8 @@ class Message:
             },
 
             "install_21": {
-                "en_US": f"Formatting {args[2] if len(args) > 2 else None} partition using "
-                         f"{args[3] if len(args) > 3 else None}",
-                "pt_BR": f"Formatando partição {args[2] if len(args) > 2 else None} usando "
-                         f"{args[3] if len(args) > 3 else None}",
+                "en_US": f"Formatting main partition using {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Formatando partição principal usando {args[2] if len(args) > 2 else None}",
             },
 
             "install_22": {
