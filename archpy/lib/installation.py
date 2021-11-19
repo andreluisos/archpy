@@ -18,7 +18,7 @@ class Setup:
         self.core_packages = Packages(self.config).core_packages
         self.util_packages = Packages(self.config).util_packages
         if self.config['swap'] == "Swap on ZRAM":
-            self.util_packages.append('zram-generator')
+            self.util_packages.append('systemd-swap')
 
     def install(self):
 
@@ -168,11 +168,9 @@ class Setup:
 
         # Zram
         if self.config['swap'] == 'Swap on ZRAM':
-            Cmd('touch /mnt/etc/systemd/zram-generator.conf')
-            with open('/mnt/etc/systemd/zram-generator.conf', 'a') as fh:
-                fh.write('[zram0]')
-            Cmd(f'arch-chroot /mnt systemctl enable systemd-zram-setup@.service',
-                msg=Message.message('73', self.config['language'], " ".join(self.services)))
+            File('/mnt/etc/systemd/swap.conf').replace('#zram_enabled=0', f'zram_enabled=1')
+            File('/mnt/etc/systemd/swap.conf').replace('#zram_size=$(( RAM_SIZE / 4 ))', f'zram_size=$(( RAM_SIZE / 2 ))')
+            self.services.append('systemd-swap')
 
         # Bootloader.
         if self.config['disk_encryption']:
