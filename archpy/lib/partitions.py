@@ -36,22 +36,22 @@ class Partition:
                     f'--new=1:0:+550MiB '
                     f'--typecode=1:ef00 '
                     f'--change-name=1:EFI {device}',
-                    msg=Message.message('install_40', self.config['language']))
+                    msg=Message.message('install_40', self.config['language'], device))
                 Cmd('mkfs.fat -F32 -n EFI /dev/disk/by-partlabel/EFI',
-                    msg=Message.message('install_21', self.config['language'], 'system', 'FAT32'))
+                    msg=Message.message('install_21', self.config['language'], 'EFI', 'FAT32'))
                 if swap_partition:
                     # Create swap partition.
                     Cmd(f'sgdisk '
                         f'--new=2:0:+{ceil(SystemInfo().sysinfo["total_ram"] * 1000 / 1024 ** 3)}GiB '
                         f'--typecode=2:8200 '
                         f'--change-name=2:swap {device}',
-                        msg=Message.message('install_50', self.config['language']))
+                        msg=Message.message('install_50', self.config['language'], device))
             # Create system partition on all disks.
             Cmd(f'sgdisk '
                 f'--new={"3" if swap_partition else "2"}:0:0 '
                 f'--typecode={"3" if swap_partition else "2"}:8300 '
                 f'--change-name={"3" if swap_partition else "2"}:system{index} {device}',
-                msg=Message.message('install_16', self.config['language']))
+                msg=Message.message('install_51', self.config['language'], device))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
 
         if self.config['raid'] and filesystem == 'BTRFS':

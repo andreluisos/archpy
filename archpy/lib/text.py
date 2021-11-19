@@ -415,8 +415,8 @@ class Message:
             },
 
             "install_40": {
-                "en_US": f"Creating EFI partition",
-                "pt_BR": f"Criando partição EFI",
+                "en_US": f"Creating EFI partition in {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Criando partição EFI em {args[2] if len(args) > 2 else None}",
             },
 
             "install_41": {
@@ -465,8 +465,13 @@ class Message:
             },
 
             "install_50": {
-                "en_US": "Creating swap partition",
-                "pt_BR": "Criando partição swap",
+                "en_US": f"Creating swap partition in {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Criando partição swap in {args[2] if len(args) > 2 else None}",
+            },
+
+            "install_51": {
+                "en_US": f"Creating system partition in {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Criando partição do sistema em {args[2] if len(args) > 2 else None}",
             },
 
         }
