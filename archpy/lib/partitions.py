@@ -85,7 +85,7 @@ class Partition:
 
         # Handles BTRFS partitioning and subvolumes.
         if filesystem == 'BTRFS':
-            Cmd(f'mount -t btrfs LABEL=system /mnt',
+            Cmd(f'mount -t btrfs LABEL=system0 /mnt',
                 msg=Message.message('86', self.config['language'], '/mnt'))
             Cmd(f'btrfs subvolume create /mnt/root',
                 msg=Message.message('54', self.config['language'], '/mnt/root'))
@@ -104,7 +104,7 @@ class Partition:
                 if subvolume == 'snapshots':
                     mountpoint = '/mnt/.snapshots'
                 Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
-                    f'LABEL=system {mountpoint}',
+                    f'LABEL=system0 {mountpoint}',
                     msg=Message.message('53', self.config['language'], subvolume, mountpoint))
 
         # Removes the diskpw file.
