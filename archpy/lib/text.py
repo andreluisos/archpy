@@ -211,8 +211,8 @@ class Message:
             },
 
             "user_input_31": {
-                "en_US": f"What raid mode would you like to use (0, 1, 3, 5, 10)?",
-                "pt_BR": f'Qual modo de raid você gostaria de usar (0, 1, 3, 5, 10)?',
+                "en_US": f"What raid mode would you like to use?",
+                "pt_BR": f'Qual modo de raid você gostaria de usar?',
             },
 
             "install_01": {

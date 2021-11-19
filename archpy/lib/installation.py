@@ -83,9 +83,6 @@ class Setup:
         for device in self.config['storage_devices']:
             Cmd(f'sgdisk --zap-all {device}', msg=Message.message('install_15', self.config['language'], device))
 
-        # EFI Partition.
-        Partition(self.config).efi()
-
         # Partition layout.
         if self.config['filesystem'] == 'BTRFS':
             self.initramfs_modules.append('btrfs')

@@ -63,8 +63,7 @@ class Config:
         self.available_devices = self.sysinfo['storage_devices']
         self.available_swaps = ['Swap on ZRAM', 'Swap on partition']
         self.available_filesystems = ['BTRFS']
-        self.available_raids = ['raid0', 'raid1', 'raid3', 'raid5', 'raid10']
-
+        self.available_raids = ['RAID0', 'RAID1', 'RAID3', 'RAID5', 'RAID10']
         self.userpw = None
         self.diskpw = None
 
@@ -148,12 +147,17 @@ class Config:
                 Message('red_alert').print(Message.message('user_input_06', self.config['language']))
                 continue
             else:
-                self.config['storage_devices'] = storage_devices
                 break
         if len(self.config['storage_devices']) > 1 and self.config['filesystem'] == "BTRFS":
             if confirm(Message.message('user_input_30', self.config['language']), default=False):
-                pass
-
+                self.config['raid'] = checkbox(
+                    message=Message.message('user_input_31', self.config['language']),
+                    choices=self.available_raids,
+                    default='RAID1'
+                ).lower()
+        else:
+            self.config['raid'] = False
+        return storage_devices
 
     def set_username(self):
         fullname = unidecode(self.config['full_name']).split(' ')

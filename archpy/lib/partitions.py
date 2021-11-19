@@ -8,8 +8,15 @@ class Partition:
         self.config = config
         self.diskpw = diskpw
 
-    def efi(self):
-        # Creating the EFI partition.
+    def layout1(self, filesystem='BTRFS', swap_partition=False):
+        # This layout uses 2 or 3 partitions: EFI; SWAP, if enabled (same size as RAM, for hibernation);
+        # and SYSTEM, on the top of LUKS dm-crypt or not, holding root and home data, formatted as BTRFS and
+        # Using subvolumes to manage snapshots of the current root and home contents.
+
+        if self.config['raid']:
+            Cmd(f'mkfs.btrfs -L raid -d {self.config["raid"]} -m {self.config["raid"]} -f '
+                f'{" ".join(self.config["storage_devices"])}')
+
         Cmd(f'sgdisk '
             f'--clear '
             f'--new=1:0:+550MiB '
@@ -20,11 +27,6 @@ class Partition:
         # Formating EFI.
         Cmd('mkfs.fat -F32 -n EFI /dev/disk/by-partlabel/EFI',
             msg=Message.message('install_21', self.config['language'], 'system', 'FAT32'))
-
-    def layout1(self, filesystem='BTRFS', swap_partition=False):
-        # This layout uses 2 or 3 partitions: EFI; SWAP, if enabled (same size as RAM, for hibernation);
-        # and SYSTEM, on the top of LUKS dm-crypt or not, holding root and home data, formatted as BTRFS and
-        # Using subvolumes to manage snapshots of the current root and home contents.
 
         # Partitioning.
         if swap_partition:
@@ -65,6 +67,7 @@ class Partition:
                 msg=Message.message('install_20', self.config['language']))
 
         # Handles BTRFS partitioning and subvolumes.
+        # ADD RAID SUPPORT
         if filesystem == 'BTRFS':
             if self.config['disk_encryption']:
                 Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system',
