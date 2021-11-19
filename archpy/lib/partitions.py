@@ -26,11 +26,18 @@ class Partition:
 
         self.wipe()
 
+        if self.config['raid'] and filesystem == 'BTRFS':
+            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
+                f'{" ".join(self.config["storage_devices"])}')
+            disk = f'/dev/disk/by-label/{self.config["hostname"]}'
+        else:
+            disk = self.config["storage_devices"][0]
+
         Cmd(f'sgdisk '
             f'--clear '
             f'--new=1:0:+550MiB '
             f'--typecode=1:ef00 '
-            f'--change-name=1:EFI {self.config["storage_devices"][0]}',
+            f'--change-name=1:EFI {disk}',
             msg=Message.message('install_40', self.config['language']))
 
         # Formating EFI.
@@ -45,13 +52,13 @@ class Partition:
                 f'--change-name=2:swap '
                 f'--new=3:0:0 '
                 f'--typecode=3:8300 '
-                f'--change-name=3:system {self.config["storage_devices"][0]}',
+                f'--change-name=3:system {disk}',
                 msg=Message.message('install_16', self.config['language']))
         else:
             Cmd(f'sgdisk '
                 f'--new=2:0:0 '
                 f'--typecode=2:8300 '
-                f'--change-name=2:system {self.config["storage_devices"][0]}',
+                f'--change-name=2:system {disk}',
                 msg=Message.message('install_16', self.config['language']))
 
         # Handles the disk encryption.
@@ -84,9 +91,6 @@ class Partition:
             else:
                 Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system',
                     msg=Message.message('install_21', self.config['language'], 'system', 'BTRFS'))
-            if self.config['raid'] and filesystem == 'BTRFS':
-                Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
-                    f'{" ".join(self.config["storage_devices"])}')
             Cmd(f'mount -t btrfs LABEL=system /mnt',
                 msg=Message.message('install_22', self.config['language'], 'system', '/mnt'))
             Cmd(f'btrfs subvolume create /mnt/root',
