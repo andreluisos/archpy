@@ -67,7 +67,7 @@ class Partition:
                     Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system{index}',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
                 else:
-                    Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system{index}',
+                    Cmd(f'mkfs.btrfs --force --label system{index} /dev/disk/by-partlabel/system{index}',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
 
