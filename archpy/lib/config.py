@@ -14,6 +14,9 @@ from archpy import Cmd, Message, File, SystemInfo, TZ_COUNTRY, Packages
 class Config:
 
     def __init__(self):
+        self.sysinfo = SystemInfo().sysinfo
+        if self.sysinfo == 'BIOS':
+            Message('red_alert').print('You are using BIOS, but only UEFI is supported at this moment. Leaving.')
         self.config = {
             "language": None,
             "keyboard_layout": None,
@@ -22,8 +25,9 @@ class Config:
             "install_type": None,
             "swap": None,
             "filesystem": None,
-            "kernels": [],
             "storage_devices": [],
+            "raid": None,
+            "kernels": [],
             "username": None,
             "full_name": None,
             "hostname": None,
@@ -51,14 +55,15 @@ class Config:
                     self.available_regions.append(country)
             self.available_regions = sorted(self.available_regions)
         except urllib.error.URLError:
-            Message('red_alert').print(Message.message('user_input_22', self.config['language'],
+            Message('red_alert').print(Message.message('22', self.config['language'],
                                                        'https://archlinux.org/mirrorlist/'))
         self.available_install_types = ['Minimal', 'Minimal Gnome', 'Minimal KDE Plasma', 'Gnome', 'KDE Plasma']
         self.available_kernels = {'Stable': "linux", 'Longterm': "linux-lts", 'Hardened': "linux-hardened",
                                   'Zen': "linux-zen"}
-        self.available_devices = SystemInfo().sysinfo['storage_devices']
+        self.available_devices = self.sysinfo['storage_devices']
         self.available_swaps = ['Swap on ZRAM', 'Swap on partition']
         self.available_filesystems = ['BTRFS']
+        self.available_raids = ['RAID0', 'RAID1', 'RAID3', 'RAID5', 'RAID10']
         self.userpw = None
         self.diskpw = None
 
@@ -74,54 +79,42 @@ class Config:
             if language in keymap.lower():
                 default = keymap
         return list_input(
-            message=Message.message('user_input_01', self.config['language']),
+            message=Message.message('01', self.config['language']),
             choices=self.available_keymaps,
             default=default if default is not None else 'us'
         )
 
     def set_timezone(self):
         return list_input(
-            message=Message.message('user_input_02', self.config['language']),
+            message=Message.message('02', self.config['language']),
             choices=self.available_timezones,
             default='America/Sao_Paulo' if self.config['language'] == 'pt_BR' else 'America/New_York'
         )
 
     def set_mirrors(self):
-        return list_input(Message.message('user_input_24', self.config['language'],
+        return list_input(Message.message('24', self.config['language'],
                                           TZ_COUNTRY[self.config['timezone']]), choices=self.available_regions,
                           default=TZ_COUNTRY[self.config['timezone']] if TZ_COUNTRY[self.config[
                               'timezone']] in self.available_regions else 'United States')
 
     def set_install_type(self):
-        return list_input(Message.message('user_input_03', self.config['language']),
+        return list_input(Message.message('03', self.config['language']),
                           choices=self.available_install_types,
                           default='Minimal Gnome')
 
     def set_kernels(self):
         return [self.available_kernels[kernel] for kernel in
-                checkbox(Message.message('user_input_04', self.config['language']),
+                checkbox(Message.message('04', self.config['language']),
                          choices=self.available_kernels,
                          default='Stable') if kernel in self.available_kernels]
 
-    def set_devices(self):
-        while True:
-            storage_devices = checkbox(
-                message=Message.message('user_input_05', self.config['language']),
-                choices=self.available_devices
-            )
-            if not storage_devices:
-                Message('red_alert').print(Message.message('user_input_06', self.config['language']))
-                continue
-            else:
-                return storage_devices
-
     def set_disk_encryption(self):
         while True:
-            disk_encryption1 = password(Message.message('user_input_15', self.config['language'],
+            disk_encryption1 = password(Message.message('15', self.config['language'],
                                                         self.config['username']))
-            disk_encryption2 = password(Message.message('user_input_11', self.config['language']))
+            disk_encryption2 = password(Message.message('11', self.config['language']))
             if disk_encryption1 != disk_encryption2:
-                Message('red_alert').print(Message.message('user_input_12', self.config['language']))
+                Message('red_alert').print(Message.message('12', self.config['language']))
                 continue
             else:
                 if type(disk_encryption1) != bytes:
@@ -132,17 +125,44 @@ class Config:
 
     def set_swap(self):
         return list_input(
-            message=Message.message('user_input_26', self.config['language']),
+            message=Message.message('26', self.config['language']),
             choices=self.available_swaps,
             default='Swap on ZRAM'
         )
 
     def set_filesystem(self):
         return list_input(
-            message=Message.message('user_input_25', self.config['language']),
+            message=Message.message('25', self.config['language']),
             choices=self.available_filesystems,
             default='BTRFS'
         )
+
+    def set_devices(self):
+        while True:
+            if self.config['filesystem'] == 'BTRFS':
+                storage_devices = checkbox(
+                    message=Message.message('05', self.config['language']),
+                    choices=self.available_devices
+                )
+            else:
+                storage_devices = list_input(
+                    message=Message.message('05', self.config['language']),
+                    choices=self.available_devices
+                )
+            if not storage_devices:
+                Message('red_alert').print(Message.message('06', self.config['language']))
+                continue
+            else:
+                self.config['storage_devices'] = storage_devices
+                break
+        if len(self.config['storage_devices']) > 1 and self.config['filesystem'] == "BTRFS":
+            self.config['raid'] = list_input(
+                message=Message.message('31', self.config['language']),
+                choices=self.available_raids,
+                default='RAID1'
+            ).lower()
+        else:
+            self.config['raid'] = False
 
     def set_username(self):
         fullname = unidecode(self.config['full_name']).split(' ')
@@ -151,45 +171,45 @@ class Config:
         else:
             default = fullname[0].lower()
         while True:
-            username = text(Message.message('user_input_07', self.config['language']), default=default)
+            username = text(Message.message('07', self.config['language']), default=default)
             if match(r'^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$', username):
                 return username
             else:
-                Message('red_alert').print(Message.message('user_input_08', self.config['language']))
+                Message('red_alert').print(Message.message('08', self.config['language']))
                 continue
 
     def set_full_name(self):
-        return text(Message.message('user_input_09', self.config['language']))
+        return text(Message.message('09', self.config['language']))
 
     def set_user_password(self):
         while True:
-            pass1 = password(Message.message('user_input_10', self.config['language'],
+            pass1 = password(Message.message('10', self.config['language'],
                                              self.config['username']))
-            pass2 = password(Message.message('user_input_11', self.config['language']))
+            pass2 = password(Message.message('11', self.config['language']))
             if pass1 != pass2:
-                Message('red_alert').print(Message.message('user_input_12', self.config['language']))
+                Message('red_alert').print(Message.message('12', self.config['language']))
                 continue
             else:
                 return pass1
 
     def set_hostname(self):
         while True:
-            hostname = text(Message.message('user_input_13', self.config['language']),
+            hostname = text(Message.message('13', self.config['language']),
                             default=self.config['username'])
             if match(r'^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$', hostname):
                 return hostname
             else:
-                Message('red_alert').print(Message.message('user_input_14', self.config['language']))
+                Message('red_alert').print(Message.message('14', self.config['language']))
                 continue
 
     def set_flatpak(self):
-        if confirm(Message.message('user_input_27', self.config['language']), default=True):
+        if confirm(Message.message('27', self.config['language']), default=True):
             self.config['extra_packages'].append('flatpak')
         else:
             pass
 
     def set_extra_packages(self):
-        packages = text(Message.message('user_input_29', self.config['language'])).split(' ')
+        packages = text(Message.message('29', self.config['language'])).split(' ')
         invalid_packages = Packages(self.config).validate_package_list(packages)
         if not invalid_packages:
             packages = [item for item in packages if item not in invalid_packages]
@@ -211,9 +231,7 @@ class Config:
 
         self.config['kernels'] = self.set_kernels()
 
-        self.config['storage_devices'] = self.set_devices()
-
-        self.config['disk_encryption'] = confirm(Message.message('user_input_16', self.config['language']),
+        self.config['disk_encryption'] = confirm(Message.message('16', self.config['language']),
                                                  default=False)
 
         if self.config['disk_encryption'] and not generate:
@@ -222,6 +240,8 @@ class Config:
         self.config['swap'] = self.set_swap()
 
         self.config['filesystem'] = self.set_filesystem()
+
+        self.set_devices()
 
         self.config['full_name'] = self.set_full_name()
 
@@ -240,7 +260,7 @@ class Config:
 
     def generate(self):
         self.config = Config().new(generate=True)[0]
-        full_path = Path(text(Message.message('user_input_18', self.config['language'])))
+        full_path = Path(text(Message.message('18', self.config['language'])))
         if full_path.is_dir() and full_path.exists():
             File(full_path.joinpath('archpy.json')).save(self.config)
 
@@ -251,7 +271,7 @@ class Config:
             while True:
                 full_path = Path(path)
                 if full_path == "" or (not Path(full_path).is_file() or not Path(full_path).exists()):
-                    Message('red_alert').print(Message.message('user_input_20', self.config['language']))
+                    Message('red_alert').print(Message.message('20', self.config['language']))
                     break
                 else:
                     self.config = File(full_path).load()
@@ -283,7 +303,7 @@ class Config:
             self.config['kernels'] = self.set_kernels()
 
         if any(item not in self.available_devices for item in self.config['storage_devices']):
-            self.config['storage_devices'] = self.set_devices()
+            self.set_devices()
 
         if self.config['full_name'] is None:
             self.config['full_name'] = self.set_full_name()

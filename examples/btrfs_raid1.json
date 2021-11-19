@@ -1,0 +1,28 @@
+{
+    "language": "en_US",
+    "keyboard_layout": "us",
+    "timezone": "America/New_York",
+    "mirror": "United States",
+    "install_type": "Minimal Gnome",
+    "swap": "Swap on ZRAM",
+    "filesystem": "BTRFS",
+    "storage_devices": [
+        "/dev/vda",
+        "/dev/vdb"
+    ],
+    "raid": "raid1",
+    "kernels": [
+        "linux"
+    ],
+    "username": "archpy",
+    "full_name": "Archpy",
+    "hostname": "archpy",
+    "disk_encryption": false,
+    "extra_packages": [
+        "flatpak",
+        "firefox",
+        "python3",
+        "python-pip",
+        "git"
+    ]
+}

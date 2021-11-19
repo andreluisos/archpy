@@ -18,73 +18,57 @@ class Setup:
         self.core_packages = Packages(self.config).core_packages
         self.util_packages = Packages(self.config).util_packages
         if self.config['swap'] == "Swap on ZRAM":
-            self.util_packages.append('zram-generator')
+            self.util_packages.append('systemd-swap')
 
     def install(self):
 
         print(
-            f"{Message.message('install_01', self.config['language'])}\n"
-            f"{Message.message('install_02', self.config['language'])} "
+            f"{Message.message('32', self.config['language'])}\n"
+            f"{Message.message('33', self.config['language'])} "
             f"{Message.BOLD}{self.config['install_type']}{Message.RESET}\n"
-            f"{Message.message('install_41', self.config['language'])} "
+            f"{Message.message('72', self.config['language'])} "
             f"{Message.BOLD}{self.config['swap']}{Message.RESET}\n"
-            f"{Message.message('install_03', self.config['language'])} "
+            f"{Message.message('34', self.config['language'])} "
             f"{Message.BOLD}{self.config['filesystem']}{Message.RESET}\n"
-            f"{Message.message('install_04', self.config['language'])} "
+            f"{Message.message('35', self.config['language'])} "
             f"{Message.BOLD}{self.config['username']}{Message.RESET}\n"
-            f"{Message.message('install_05', self.config['language'])} "
+            f"{Message.message('36', self.config['language'])} "
             f"{Message.BOLD}{self.config['full_name']}{Message.RESET}\n"
-            f"{Message.message('install_06', self.config['language'])} "
+            f"{Message.message('37', self.config['language'])} "
             f"{Message.BOLD}{self.config['hostname']}{Message.RESET}\n"
-            f"{Message.message('install_07', self.config['language'])} "
+            f"{Message.message('38', self.config['language'])} "
             f"{Message.BOLD}{self.config['keyboard_layout']}{Message.RESET}\n"
-            f"{Message.message('install_08', self.config['language'])} "
+            f"{Message.message('39', self.config['language'])} "
             f"{Message.BOLD}{self.config['timezone']}{Message.RESET}\n"
-            f"{Message.message('install_09', self.config['language'])} "
+            f"{Message.message('40', self.config['language'])} "
             f"{Message.BOLD}{self.config['mirror']}{Message.RESET}\n"
-            f"{Message.message('install_10', self.config['language'])} "
+            f"{Message.message('41', self.config['language'])} "
             f"{Message.BOLD}{self.config['kernels'][0]}{Message.RESET}\n"
-            f"{Message.message('install_11', self.config['language'])} "
+            f"{Message.message('42', self.config['language'])} "
             f"{Message.BOLD}{', '.join(self.config['storage_devices'])}{Message.RESET}\n"
-            f"{Message.message('install_43', self.config['language'])} "
+            f"{Message.message('74', self.config['language'])} "
             f"{Message.BOLD}{', '.join(self.core_packages)}{Message.RESET}\n"
-            f"{Message.message('install_45', self.config['language'])} "
+            f"{Message.message('76', self.config['language'])} "
             f"{Message.BOLD}{', '.join(self.util_packages)}{Message.RESET}\n"
-            f"{Message.message('install_47', self.config['language'])} "
+            f"{Message.message('78', self.config['language'])} "
             f"{Message.BOLD}{', '.join(self.config['extra_packages'])}{Message.RESET}\n"
         )
 
         # Prompts user to confirm installation.
-        if not confirm(Message.message('install_12', self.config['language'])):
+        if not confirm(Message.message('43', self.config['language'])):
             Message('red_alert').print('Aborting installation!')
             exit()
 
-        # Erases the disk.
-        # NEEDS TO DO IT BETTER.
-        Cmd('swapoff -a', quiet=True)
-        Cmd('umount -l /mnt', quiet=True)
-        Cmd('cryptsetup close --batch-mode swap', quiet=True)
-        Cmd('cryptsetup close --batch-mode system', quiet=True)
-        Cmd('cryptsetup luksErase --batch-mode /dev/disk/by-partlabel/system', quiet=True)
-
         # Loads keyboard layout.
         Cmd(f"loadkeys {self.config['keyboard_layout']}",
-            msg=Message.message('user_input_17', self.config['language'], self.config['keyboard_layout']), quiet=False)
+            msg=Message.message('17', self.config['language'], self.config['keyboard_layout']), quiet=False)
 
         # Defining the mirrorlist.
         Cmd('cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bkp',
-            msg=Message.message('install_13', self.config['language']))
+            msg=Message.message('44', self.config['language']))
         Cmd(f"reflector -c '{self.config['mirror']}' --a 24 --delay 24 --p https,http --sort rate -f 10 -l 10 "
             f"--save /etc/pacman.d/mirrorlist",
-            msg=Message.message('install_14', self.config['language']))
-
-        # Wiping all storage devices.
-        # NEED TO MAKE SURE EVERYTHING IS WIPED TO REINSTALL.
-        for device in self.config['storage_devices']:
-            Cmd(f'sgdisk --zap-all {device}', msg=Message.message('install_15', self.config['language'], device))
-
-        # EFI Partition.
-        Partition(self.config).efi()
+            msg=Message.message('45', self.config['language']))
 
         # Partition layout.
         if self.config['filesystem'] == 'BTRFS':
@@ -97,29 +81,29 @@ class Setup:
                                                         swap_partition=False)
 
         # Mounts the EFI partition.
-        Cmd(f'mkdir /mnt/boot', msg=Message.message('install_25', self.config['language'], '/mnt/boot'))
+        Cmd(f'mkdir /mnt/boot', msg=Message.message('56', self.config['language'], '/mnt/boot'))
         Cmd(f'mount LABEL=EFI /mnt/boot',
-            msg=Message.message('install_22', self.config['language'], 'EFI', '/mnt/boot'))
+            msg=Message.message('53', self.config['language'], 'EFI', '/mnt/boot'))
 
         # Install core packages.
         Cmd(f'pacstrap /mnt {" ".join(self.core_packages)}',
             msg=Message.message(
-                'install_26',
+                '57',
                 self.config['language'],
-                Message.message('install_44', self.config['language'], " ".join(self.core_packages))))
+                Message.message('75', self.config['language'], " ".join(self.core_packages))))
 
         # Fstab generation and edition.
         Cmd(f'genfstab -L -p /mnt >> /mnt/etc/fstab', shell=True,
-            msg=Message.message('install_27', self.config['language']))
+            msg=Message.message('58', self.config['language']))
         if self.config['swap'] == 'Swap on partition' and self.config['disk_encryption']:
             Cmd(f'sed -i s+LABEL=swap+/dev/mapper/swap+ /mnt/etc/fstab',
-                msg=Message.message('install_28', self.config['language']))
+                msg=Message.message('59', self.config['language']))
 
         # Locale
         if self.config['language'] != "en_US":
             Cmd("sed -i '/en_US5.UTF-8 UTF-8/s/^#//g' /mnt/etc/locale.gen", quiet=True)
         Cmd(f"sed -i '/{self.config['language']}.UTF-8 UTF-8/s/^#//g' /mnt/etc/locale.gen", quiet=True)
-        Cmd("arch-chroot /mnt locale-gen", msg=Message.message('install_29', self.config['language']))
+        Cmd("arch-chroot /mnt locale-gen", msg=Message.message('60', self.config['language']))
         Cmd('touch /mnt/etc/locale.conf /mnt/etc/vconsole.conf')
         with open('/mnt/etc/locale.conf', 'wt') as fh:
             fh.write(f'LANG={self.config["language"]}.UTF-8')
@@ -127,11 +111,11 @@ class Setup:
             fh.write(f'KEYMAP={self.config["keyboard_layout"]}')
 
         # Adjtime and NTP sync.
-        Cmd('arch-chroot /mnt hwclock --systohc', msg=Message.message('install_30', self.config['language']))
-        Cmd('arch-chroot /mnt timedatectl set-ntp true', msg=Message.message('install_31', self.config['language']))
+        Cmd('arch-chroot /mnt hwclock --systohc', msg=Message.message('61', self.config['language']))
+        Cmd('arch-chroot /mnt timedatectl set-ntp true', msg=Message.message('62', self.config['language']))
 
         # Hostname.
-        Cmd('touch /mnt/etc/hostname /mnt/etc/hosts', msg=Message.message('install_32', self.config['language']))
+        Cmd('touch /mnt/etc/hostname /mnt/etc/hosts', msg=Message.message('63', self.config['language']))
         with open('/mnt/etc/hostname', 'wt') as fh:
             fh.write(f'{self.config["hostname"]}')
         with open('/mnt/etc/hosts', 'wt') as fh:
@@ -142,9 +126,9 @@ class Setup:
         # Install util packages.
         Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm {" ".join(self.util_packages)}',
             msg=Message.message(
-                'install_26',
+                '57',
                 self.config['language'],
-                Message.message('install_46', self.config['language'], " ".join(self.core_packages))))
+                Message.message('77', self.config['language'], " ".join(self.core_packages))))
         self.services.extend(['NetworkManager', 'sshd'])
 
         # Initramfs.
@@ -154,7 +138,7 @@ class Setup:
             self.util_packages.append('xorg')
             self.initramfs_modules.extend(['nvidia', 'nvidia_modeset', 'nvidia_uvm', 'nvidia_drm'])
             Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm nvidia cuda nvidia-settings',
-                msg=Message.message('install_33', self.config['language']))
+                msg=Message.message('64', self.config['language']))
         if any('intel' in x.lower() for x in self.sysinfo['gfx_cards']):
             self.initramfs_modules.extend(['intel_agp', 'i915'])
         File('/mnt/etc/mkinitcpio.conf', backup=True).replace('MODULES=()', f'MODULES=('
@@ -165,13 +149,13 @@ class Setup:
                 "autodetect keyboard sd-vconsole modconf block sd-encrypt filesystems fsck)/g' "
                 "/mnt/etc/mkinitcpio.conf")
         Cmd(f'arch-chroot /mnt mkinitcpio -p {self.config["kernels"][0]}',
-            msg=Message.message('install_34', self.config['language']))
+            msg=Message.message('65', self.config['language']))
 
         # User.
         Cmd(f'arch-chroot /mnt useradd -m -G wheel -c "{self.config["full_name"]}" "{self.config["username"]}"',
-            msg=Message.message('install_36', self.config['language'], self.config['username']), shell=True)
+            msg=Message.message('67', self.config['language'], self.config['username']), shell=True)
         Cmd(f'echo "{self.config["username"]}:{self.userpw}" | arch-chroot /mnt chpasswd',
-            msg=Message.message('install_37', self.config['language'], self.config['username']), shell=True)
+            msg=Message.message('68', self.config['language'], self.config['username']), shell=True)
         with open('/mnt/etc/sudoers', 'rt') as fh:
             sudoers_data = fh.read().replace('# %wheel ALL=(ALL) ALL', '%wheel ALL=(ALL) ALL')
         with open('/mnt/etc/sudoers', 'wt') as fh:
@@ -180,15 +164,13 @@ class Setup:
         Cmd(
             f'arch-chroot /mnt usermod --add-subuids 100000-165535 --add-subgids 100000-165535 '
             f'{self.config["username"]}',
-            msg=Message.message('install_36', self.config['language'], self.config['username']))
+            msg=Message.message('67', self.config['language'], self.config['username']))
 
         # Zram
         if self.config['swap'] == 'Swap on ZRAM':
-            Cmd('touch /mnt/etc/systemd/zram-generator.conf')
-            with open('/mnt/etc/systemd/zram-generator.conf', 'a') as fh:
-                fh.write('[zram0]')
-            Cmd(f'arch-chroot /mnt systemctl enable systemd-zram-setup@.service',
-                msg=Message.message('install_42', self.config['language'], " ".join(self.services)))
+            File('/mnt/etc/systemd/swap.conf').replace('#zram_enabled=0', f'zram_enabled=1')
+            File('/mnt/etc/systemd/swap.conf').replace('#zram_size=$(( RAM_SIZE / 4 ))', f'zram_size=$(( RAM_SIZE / 2 ))')
+            self.services.append('systemd-swap')
 
         # Bootloader.
         if self.config['disk_encryption']:
@@ -203,28 +185,28 @@ class Setup:
             self.services.append('sddm')
         if self.config['install_type'] in ['Minimal Gnome', 'Gnome', 'KDE Plasma', 'KDE Plasma']:
             Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm {" ".join(Packages(self.config).audio_packages)}',
-                msg=Message.message('install_26', self.config['language'], "Pipewire"))
+                msg=Message.message('57', self.config['language'], "Pipewire"))
         if self.config['install_type'] == 'Minimal Gnome':
             Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm {" ".join(Packages(self.config).minimal_gnome)}',
-                msg=Message.message('install_26', self.config['language'], "Gnome"))
+                msg=Message.message('57', self.config['language'], "Gnome"))
         elif self.config['install_type'] == 'Gnome':
             Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm gnome gnome-software-packagekit-plugin',
-                msg=Message.message('install_26', self.config['language'], "Gnome"))
+                msg=Message.message('57', self.config['language'], "Gnome"))
         elif self.config['install_type'] == 'Minimal KDE Plasma':
             Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm plasma-meta plasma-wayland-session',
-                msg=Message.message('install_26', self.config['language'], "KDE Plasma"))
+                msg=Message.message('57', self.config['language'], "KDE Plasma"))
         elif self.config['install_type'] == 'KDE Plasma':
             Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm plasma plasma-wayland-session kde-applications',
-                msg=Message.message('install_26', self.config['language'], "KDE Plasma"))
+                msg=Message.message('57', self.config['language'], "KDE Plasma"))
         Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm {" ".join(self.config["extra_packages"])}',
             msg=Message.message(
-                'install_26',
+                '57',
                 self.config['language'],
-                Message.message('install_48', self.config['language'], " ".join(self.core_packages))))
+                Message.message('79', self.config['language'], " ".join(self.core_packages))))
 
         # Services
         Cmd(f'arch-chroot /mnt systemctl enable {" ".join(self.services)}',
-            msg=Message.message('install_38', self.config['language'], " ".join(self.services)))
+            msg=Message.message('69', self.config['language'], " ".join(self.services)))
 
         if self.config['install_type'] in ['Minimal Gnome']:
             for file in glob(f'/mnt/usr/share/applications/*.desktop'):
