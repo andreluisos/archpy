@@ -106,8 +106,8 @@ class Partition:
                     mountpoint = '/mnt/home'
                 if subvolume == 'snapshots':
                     mountpoint = '/mnt/.snapshots'
-                Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime'
-                    f' LABEL=system {mountpoint}',
+                Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
+                    f'LABEL=system {mountpoint}',
                     msg=Message.message('install_22', self.config['language'], subvolume, mountpoint))
 
         # Removes the diskpw file.
