@@ -56,7 +56,8 @@ class Partition:
 
         if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
-                f'{" ".join(system_partitions)}')
+                f'{" ".join(system_partitions)}',
+                msg=Message.message('install_52', self.config['language'], " ".join(system_partitions)))
 
         # Handles the disk encryption.
         if self.config['disk_encryption']:
@@ -83,7 +84,7 @@ class Partition:
         if filesystem == 'BTRFS':
             if self.config['disk_encryption']:
                 Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system0',
-                    msg=Message.message('install_21', self.config['language'], 'system0', 'BTRFS'))
+                    msg=Message.message('install_21', self.config['language'], 'system', 'BTRFS'))
             else:
                 Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system0',
                     msg=Message.message('install_21', self.config['language'], 'system', 'BTRFS'))

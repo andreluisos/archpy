@@ -474,6 +474,11 @@ class Message:
                 "pt_BR": f"Criando partição do sistema em {args[2] if len(args) > 2 else None}",
             },
 
+            "install_52": {
+                "en_US": f"Setting up raid system between {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Configurando sistema raid entre {args[2] if len(args) > 2 else None}",
+            },
+
         }
 
         return messages[args[0]][args[1]]
