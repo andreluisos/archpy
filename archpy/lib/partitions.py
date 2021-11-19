@@ -26,10 +26,6 @@ class Partition:
 
         self.wipe()
 
-        if self.config['raid'] and filesystem == 'BTRFS':
-            Cmd(f'mkfs.btrfs -L system -d {self.config["raid"]} -m {self.config["raid"]} -f '
-                f'{" ".join(self.config["storage_devices"])}')
-
         Cmd(f'sgdisk '
             f'--clear '
             f'--new=1:0:+550MiB '
@@ -88,6 +84,9 @@ class Partition:
             else:
                 Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system',
                     msg=Message.message('install_21', self.config['language'], 'system', 'BTRFS'))
+            if self.config['raid'] and filesystem == 'BTRFS':
+                Cmd(f'mkfs.btrfs -L system -d {self.config["raid"]} -m {self.config["raid"]} -f '
+                    f'{" ".join(self.config["storage_devices"])}')
             Cmd(f'mount -t btrfs LABEL=system /mnt',
                 msg=Message.message('install_22', self.config['language'], 'system', '/mnt'))
             Cmd(f'btrfs subvolume create /mnt/root',
