@@ -9,7 +9,7 @@ class Bootloader:
         self.sysinfo = SystemInfo().sysinfo
 
     def systemd_boot(self, disk_encryption=False):
-        Cmd('arch-chroot /mnt bootctl install', msg=Message.message('install_35', self.config['language']))
+        Cmd('arch-chroot /mnt bootctl install', msg=Message.message('66', self.config['language']))
         Cmd('arch-chroot /mnt rm /boot/loader/loader.conf')
         Cmd('arch-chroot /mnt touch /boot/loader/loader.conf /boot/loader/entries/arch.conf')
         Cmd('touch /mnt/boot/loader/entries/arch.conf')
