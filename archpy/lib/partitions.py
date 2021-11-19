@@ -13,6 +13,7 @@ class Partition:
         # NEEDS TO DO IT BETTER.
         Cmd('swapoff -a', quiet=True)
         Cmd('umount -l /mnt', quiet=True)
+        Cmd('umount -l /mnt/boot', quiet=True)
         Cmd('cryptsetup close --batch-mode swap', quiet=True)
         Cmd('cryptsetup close --batch-mode system', quiet=True)
         Cmd('cryptsetup luksErase --batch-mode /dev/disk/by-partlabel/system', quiet=True)
