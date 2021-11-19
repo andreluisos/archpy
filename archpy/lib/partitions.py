@@ -84,10 +84,10 @@ class Partition:
         if filesystem == 'BTRFS':
             if self.config['disk_encryption']:
                 Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system0',
-                    msg=Message.message('52', self.config['language'], 'BTRFS'))
+                    msg=Message.message('87', self.config['language'], 'BTRFS'))
             else:
                 Cmd(f'mkfs.btrfs --force --label system /dev/disk/by-partlabel/system0',
-                    msg=Message.message('52', self.config['language'], 'BTRFS'))
+                    msg=Message.message('87', self.config['language'], 'BTRFS'))
             Cmd(f'mount -t btrfs LABEL=system /mnt',
                 msg=Message.message('86', self.config['language'], '/mnt'))
             Cmd(f'btrfs subvolume create /mnt/root',

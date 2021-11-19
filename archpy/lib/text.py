@@ -489,6 +489,11 @@ class Message:
                 "pt_BR": f"Motando partição principal em {args[2] if len(args) > 2 else None}",
             },
 
+            "87": {
+                "en_US": f"Formatting main partition using {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Formatando partição principal usando {args[2] if len(args) > 2 else None}",
+            },
+
         }
 
         return messages[args[0]][args[1]]
