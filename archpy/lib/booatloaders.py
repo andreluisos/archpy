@@ -41,3 +41,8 @@ class Bootloader:
                     f'rw rootflags=subvol=root {"intel_iommu=on" if self.sysinfo["cpu_vendor"] == "intel" else ""} '
                     f'iommu=pt\n'.replace('  ', ' ')
                 )
+
+    @staticmethod
+    def grub(self, disk_encryption=False):
+        Cmd('grub-install --target=i386-pc /dev/disk/by-partlabel/EFI')
+        Cmd('grub-mkconfig -o /boot/grub/grub.cfg')

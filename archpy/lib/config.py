@@ -15,14 +15,13 @@ class Config:
 
     def __init__(self):
         self.sysinfo = SystemInfo().sysinfo
-        if self.sysinfo == 'BIOS':
-            Message('red_alert').print('You are using BIOS, but only UEFI is supported at this moment. Leaving.')
         self.config = {
             "language": None,
             "keyboard_layout": None,
             "timezone": None,
             "mirror": None,
             "install_type": None,
+            "bootloader": None,
             "swap": None,
             "filesystem": None,
             "storage_devices": [],
@@ -63,6 +62,7 @@ class Config:
         self.available_devices = self.sysinfo['storage_devices']
         self.available_swaps = ['Swap on ZRAM', 'Swap on partition']
         self.available_filesystems = ['BTRFS']
+        self.available_bootloaders = ['systemd-boot', 'GRUB']
         self.available_raids = ['RAID0', 'RAID1', 'RAID3', 'RAID5', 'RAID10']
         self.userpw = None
         self.diskpw = None
@@ -101,6 +101,14 @@ class Config:
         return list_input(Message.message('03', self.config['language']),
                           choices=self.available_install_types,
                           default='Minimal Gnome')
+
+    def set_booloader(self):
+        if self.sysinfo['firmware_interface'] == 'BIOS':
+            self.config['bootloader'] = 'GRUB'
+        else:
+            self.config['bootloader'] = list_input(Message.message('88', self.config['bootloader']),
+                                                   choices=self.available_bootloaders,
+                                                   default='systemd-boot')
 
     def set_kernels(self):
         return [self.available_kernels[kernel] for kernel in
@@ -241,6 +249,8 @@ class Config:
 
         self.config['filesystem'] = self.set_filesystem()
 
+        self.set_booloader()
+
         self.set_devices()
 
         self.config['full_name'] = self.set_full_name()
@@ -298,6 +308,9 @@ class Config:
 
         if self.config['filesystem'] not in self.available_filesystems:
             self.config['filesystem'] = self.set_filesystem()
+
+        if self.config['bootloader'] not in self.available_bootloaders:
+            self.set_booloader()
 
         if any(item not in self.available_kernels.values() for item in self.config['kernels']):
             self.config['kernels'] = self.set_kernels()

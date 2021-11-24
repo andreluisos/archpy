@@ -496,6 +496,11 @@ class Message:
                          f"usando {args[3] if len(args) > 3 else None}",
             },
 
+            "88": {
+                "en_US": f"Which of these bootloaders would you like to use?",
+                "pt_BR": f"Quais desses bootloaders você gostaria de utilizar?",
+            },
+
         }
 
         return messages[args[0]][args[1]]
