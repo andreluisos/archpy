@@ -47,8 +47,8 @@ class Partition:
                     '550MiB'
                 )
                 self.set_boot(device, 1)
-                Cmd(f'mkfs.fat -F32 -n EFI {device}1',
-                    msg=Message.message('52', self.config['language'], 'EFI', 'FAT32'))
+                # Cmd(f'mkfs.fat -F32 -n EFI {device}1',
+                #     msg=Message.message('52', self.config['language'], 'EFI', 'FAT32'))
             self.mkpart(
                 device,
                 filesystem.lower(),
@@ -57,10 +57,10 @@ class Partition:
             )
             if filesystem == 'BTRFS':
                 if self.config['disk_encryption']:
-                    Cmd(f'mkfs.btrfs --force --label system {device}{index}',
+                    Cmd(f'mkfs.btrfs --force --label system {device}1',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
                 else:
-                    Cmd(f'mkfs.btrfs --force --label system{index} {device}{index}',
+                    Cmd(f'mkfs.btrfs --force --label system{index} {device}1',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
 
