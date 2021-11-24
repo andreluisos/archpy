@@ -18,7 +18,8 @@ class Partition:
         Cmd(f'parted -s {device} -s -a {align} mkpart primary {pformat} {start_size} {end_size}')
 
     def set_boot(self, device: str, part: int):
-        Cmd(f'parted -s {device} -s set {part} {"esp" if self.sysinfo["firmware_interface"] == "BIOS" else "boot"} on')
+        Cmd(f'parted -s {device} -s set {part} {"esp" if self.sysinfo["firmware_interface"] == "BIOS" else "boot"} on',
+            debug=True)
 
     def wipe(self):
         # Erases everything in the disk to prevent partitioning errors.
