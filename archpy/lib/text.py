@@ -497,8 +497,18 @@ class Message:
             },
 
             "88": {
-                "en_US": f"Which of these bootloaders would you like to use?",
-                "pt_BR": f"Quais desses bootloaders você gostaria de utilizar?",
+                "en_US": "Which of these bootloaders would you like to use?",
+                "pt_BR": "Quais desses bootloaders você gostaria de utilizar?",
+            },
+
+            "89": {
+                "en_US": "Bootloader:",
+                "pt_BR": "Bootloader:",
+            },
+
+            "90": {
+                "en_US": "Installing GRUB",
+                "pt_BR": "Instalando GRUB",
             },
 
         }

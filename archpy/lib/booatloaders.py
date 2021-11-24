@@ -42,7 +42,8 @@ class Bootloader:
                     f'iommu=pt\n'.replace('  ', ' ')
                 )
 
-    @staticmethod
-    def grub(self, disk_encryption=False):
+    def grub(self):
+        Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm grub',
+            msg=Message.message('90', self.config['language'], Message.message('77', self.config['language'])))
         Cmd('grub-install --target=i386-pc /dev/disk/by-partlabel/EFI')
         Cmd('grub-mkconfig -o /boot/grub/grub.cfg')

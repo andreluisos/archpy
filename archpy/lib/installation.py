@@ -31,6 +31,8 @@ class Setup:
             f"{Message.message('34', self.config['language'])} "
             f"{Message.BOLD}{self.config['filesystem']}{Message.RESET}\n"
             f"{Message.message('35', self.config['language'])} "
+            f"{Message.BOLD}{self.config['bootloader']}{Message.RESET}\n"
+            f"{Message.message('89', self.config['language'])} "
             f"{Message.BOLD}{self.config['username']}{Message.RESET}\n"
             f"{Message.message('36', self.config['language'])} "
             f"{Message.BOLD}{self.config['full_name']}{Message.RESET}\n"
@@ -169,14 +171,24 @@ class Setup:
         # Zram
         if self.config['swap'] == 'Swap on ZRAM':
             File('/mnt/etc/systemd/swap.conf').replace('#zram_enabled=0', f'zram_enabled=1')
-            File('/mnt/etc/systemd/swap.conf').replace('#zram_size=$(( RAM_SIZE / 4 ))', f'zram_size=$(( RAM_SIZE / 2 ))')
+            File('/mnt/etc/systemd/swap.conf').replace('#zram_size=$(( RAM_SIZE / 4 ))',
+                                                       f'zram_size=$(( RAM_SIZE / 2 ))')
             self.services.append('systemd-swap')
 
         # Bootloader.
-        if self.config['disk_encryption']:
-            Bootloader(self.config).systemd_boot(disk_encryption=True)
-        else:
-            Bootloader(self.config).systemd_boot()
+        if self.config['bootloader'] == "systemd-boot":
+            if self.config['disk_encryption']:
+                Bootloader(self.config).systemd_boot(disk_encryption=True)
+            else:
+                Bootloader(self.config).systemd_boot()
+
+        if self.config['bootloader'] == "systemd-boot":
+            if self.config['disk_encryption']:
+                Bootloader(self.config).systemd_boot(disk_encryption=True)
+            else:
+                Bootloader(self.config).systemd_boot()
+        if self.config['bootloader'] == "GRUB":
+            Bootloader(self.config).grub()
 
         # Extra packages.
         if self.config['install_type'] in ['Minimal Gnome', 'Gnome']:
