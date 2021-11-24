@@ -7,6 +7,7 @@ class Partition:
     def __init__(self, config, diskpw=None):
         self.config = config
         self.diskpw = diskpw
+        self.sysinfo = SystemInfo().sysinfo
 
     def wipe(self):
         # Erases everything in the disk to prevent partitioning errors.
@@ -70,6 +71,9 @@ class Partition:
                     Cmd(f'mkfs.btrfs --force --label system{index} /dev/disk/by-partlabel/system{index}',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
+            # Convert GPT to MBR, if this is the case.
+            if self.sysinfo['firmware_interface'] == 'BIOS':
+                Cmd(f'sgdisk -m {device}')
 
         if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
