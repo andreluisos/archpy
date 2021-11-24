@@ -57,53 +57,54 @@ class Partition:
             )
             if filesystem == 'BTRFS':
                 if self.config['disk_encryption']:
-                    Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system{index}',
+                    Cmd(f'mkfs.btrfs --force --label system {device}{index}',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
                 else:
-                    Cmd(f'mkfs.btrfs --force --label system{index} /dev/disk/by-partlabel/system{index}',
+                    Cmd(f'mkfs.btrfs --force --label system{index} {device}{index}',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
 
-        if self.config['raid'] and filesystem == 'BTRFS':
-            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
-                f'{" ".join(system_partitions)}',
-                msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
-
-        # Handles the disk encryption.
-        if self.config['disk_encryption']:
-            Cmd(f'cryptsetup luksFormat --batch-mode --align-payload=8192 -s 256 -c aes-xts-plain64 '
-                f'/dev/disk/by-partlabel/system0 --key-file {str(self.diskpw)}',
-                msg=Message.message('48', self.config['language'], '/dev/disk/by-partlabel/system0'))
-            Cmd(f'cryptsetup open --key-file {str(self.diskpw)} /dev/disk/by-partlabel/system0 system0',
-                msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/system0'))
-
-        # Handles BTRFS partitioning and subvolumes.
-        if filesystem == 'BTRFS':
-            Cmd(f'mount -t btrfs {system_partitions[0]} /mnt',
-                msg=Message.message('86', self.config['language'], '/mnt'))
-            Cmd(f'btrfs subvolume create /mnt/root',
-                msg=Message.message('54', self.config['language'], '/mnt/root'))
-            Cmd(f'btrfs subvolume create /mnt/home',
-                msg=Message.message('54', self.config['language'], '/mnt/home'))
-            Cmd(f'btrfs subvolume create /mnt/snapshots',
-                msg=Message.message('54', self.config['language'], '/mnt/snapshots'))
-            Cmd(f'umount -R /mnt',
-                msg=Message.message('55', self.config['language']))
-            mountpoint = None
-            for subvolume in ['root', 'home', 'snapshots']:
-                if subvolume == 'root':
-                    mountpoint = '/mnt'
-                if subvolume == 'home':
-                    mountpoint = '/mnt/home'
-                if subvolume == 'snapshots':
-                    mountpoint = '/mnt/.snapshots'
-                Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
-                    f'{system_partitions[0]} {mountpoint}',
-                    msg=Message.message('53', self.config['language'], subvolume, mountpoint))
-
-        # Removes the diskpw file.
-        if self.config['disk_encryption']:
-            Cmd(f'rm {str(self.diskpw)}', quiet=True)
+        print(system_partitions)
+        # if self.config['raid'] and filesystem == 'BTRFS':
+        #     Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
+        #         f'{" ".join(system_partitions)}',
+        #         msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
+        #
+        # # Handles the disk encryption.
+        # if self.config['disk_encryption']:
+        #     Cmd(f'cryptsetup luksFormat --batch-mode --align-payload=8192 -s 256 -c aes-xts-plain64 '
+        #         f'/dev/disk/by-partlabel/system0 --key-file {str(self.diskpw)}',
+        #         msg=Message.message('48', self.config['language'], '/dev/disk/by-partlabel/system0'))
+        #     Cmd(f'cryptsetup open --key-file {str(self.diskpw)} /dev/disk/by-partlabel/system0 system0',
+        #         msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/system0'))
+        #
+        # # Handles BTRFS partitioning and subvolumes.
+        # if filesystem == 'BTRFS':
+        #     Cmd(f'mount -t btrfs {system_partitions[0]} /mnt',
+        #         msg=Message.message('86', self.config['language'], '/mnt'))
+        #     Cmd(f'btrfs subvolume create /mnt/root',
+        #         msg=Message.message('54', self.config['language'], '/mnt/root'))
+        #     Cmd(f'btrfs subvolume create /mnt/home',
+        #         msg=Message.message('54', self.config['language'], '/mnt/home'))
+        #     Cmd(f'btrfs subvolume create /mnt/snapshots',
+        #         msg=Message.message('54', self.config['language'], '/mnt/snapshots'))
+        #     Cmd(f'umount -R /mnt',
+        #         msg=Message.message('55', self.config['language']))
+        #     mountpoint = None
+        #     for subvolume in ['root', 'home', 'snapshots']:
+        #         if subvolume == 'root':
+        #             mountpoint = '/mnt'
+        #         if subvolume == 'home':
+        #             mountpoint = '/mnt/home'
+        #         if subvolume == 'snapshots':
+        #             mountpoint = '/mnt/.snapshots'
+        #         Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
+        #             f'{system_partitions[0]} {mountpoint}',
+        #             msg=Message.message('53', self.config['language'], subvolume, mountpoint))
+        #
+        # # Removes the diskpw file.
+        # if self.config['disk_encryption']:
+        #     Cmd(f'rm {str(self.diskpw)}', quiet=True)
 
 
     def layout2(self, filesystem='BTRFS', swap_partition=False):
