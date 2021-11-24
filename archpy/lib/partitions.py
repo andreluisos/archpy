@@ -63,6 +63,8 @@ class Partition:
                     Cmd(f'mkfs.btrfs --force --label system{index} {device}1',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
+
+        exit()
         # if self.config['raid'] and filesystem == 'BTRFS':
         #     Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
         #         f'{" ".join(system_partitions)}',
