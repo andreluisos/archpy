@@ -9,6 +9,7 @@ from .lib.packages import *
 from .lib.config import *
 from .lib.booatloaders import *
 from .lib.installation import *
+from math import ceil
 
 __version__ = '1.0.3'
 
@@ -36,6 +37,8 @@ def run():
                 Setup(Config().new()).install()
             elif sys.argv[1] == 'sysinfo':
                 print(SystemInfo().sysinfo)
+            elif sys.argv[1] == 'teste':
+                print(ceil(SystemInfo().sysinfo['total_ram'] * 1000 / 1024 ** 3 / 2))
             elif sys.argv[1] == 'help':
                 print(
                     """

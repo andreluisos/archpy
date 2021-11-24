@@ -9,6 +9,17 @@ class Partition:
         self.diskpw = diskpw
         self.sysinfo = SystemInfo().sysinfo
 
+    @staticmethod
+    def mklabel(device: str, label: str):
+        Cmd(f'parted -s {device} -s mklabel {label}')
+
+    @staticmethod
+    def mkpart(device: str, pformat: str, start_size: str, end_size: str, align='optimal'):
+        Cmd(f'parted -s {device} -s -a {align} mkpart primary {pformat} {start_size} {end_size}')
+
+    def set_boot(self, device: str, part: int):
+        Cmd(f'parted -s {device} -s set {part} {"esp" if self.sysinfo["firmware_interface"] == "BIOS" else "boot"} on')
+
     def wipe(self):
         # Erases everything in the disk to prevent partitioning errors.
         # NEEDS TO DO IT BETTER.
@@ -22,6 +33,80 @@ class Partition:
             Cmd(f'sgdisk --zap-all {device}', msg=Message.message('46', self.config['language'], device))
 
     def layout1(self, filesystem='BTRFS', swap_partition=False):
+        self.wipe()
+        system_partitions = []
+        for index, device in enumerate(self.config["storage_devices"]):
+            # Creates the device's partition table.
+            self.mklabel(device, 'msdos' if self.sysinfo['firmware_interface'] == 'BIOS' else 'gpt')
+            if index == 0:
+                # Creates the boot partition.
+                self.mkpart(
+                    device,
+                    'fat32',
+                    '1MiB',
+                    '550MiB'
+                )
+                self.set_boot(device, 1)
+                Cmd(f'mkfs.fat -F32 -n EFI {device}1',
+                    msg=Message.message('52', self.config['language'], 'EFI', 'FAT32'))
+            self.mkpart(
+                device,
+                filesystem.lower(),
+                '551MiB',
+                '100%'
+            )
+            if filesystem == 'BTRFS':
+                if self.config['disk_encryption']:
+                    Cmd(f'mkfs.btrfs --force --label system /dev/mapper/system{index}',
+                        msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+                else:
+                    Cmd(f'mkfs.btrfs --force --label system{index} /dev/disk/by-partlabel/system{index}',
+                        msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+            system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
+
+        if self.config['raid'] and filesystem == 'BTRFS':
+            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
+                f'{" ".join(system_partitions)}',
+                msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
+
+        # Handles the disk encryption.
+        if self.config['disk_encryption']:
+            Cmd(f'cryptsetup luksFormat --batch-mode --align-payload=8192 -s 256 -c aes-xts-plain64 '
+                f'/dev/disk/by-partlabel/system0 --key-file {str(self.diskpw)}',
+                msg=Message.message('48', self.config['language'], '/dev/disk/by-partlabel/system0'))
+            Cmd(f'cryptsetup open --key-file {str(self.diskpw)} /dev/disk/by-partlabel/system0 system0',
+                msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/system0'))
+
+        # Handles BTRFS partitioning and subvolumes.
+        if filesystem == 'BTRFS':
+            Cmd(f'mount -t btrfs {system_partitions[0]} /mnt',
+                msg=Message.message('86', self.config['language'], '/mnt'))
+            Cmd(f'btrfs subvolume create /mnt/root',
+                msg=Message.message('54', self.config['language'], '/mnt/root'))
+            Cmd(f'btrfs subvolume create /mnt/home',
+                msg=Message.message('54', self.config['language'], '/mnt/home'))
+            Cmd(f'btrfs subvolume create /mnt/snapshots',
+                msg=Message.message('54', self.config['language'], '/mnt/snapshots'))
+            Cmd(f'umount -R /mnt',
+                msg=Message.message('55', self.config['language']))
+            mountpoint = None
+            for subvolume in ['root', 'home', 'snapshots']:
+                if subvolume == 'root':
+                    mountpoint = '/mnt'
+                if subvolume == 'home':
+                    mountpoint = '/mnt/home'
+                if subvolume == 'snapshots':
+                    mountpoint = '/mnt/.snapshots'
+                Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
+                    f'{system_partitions[0]} {mountpoint}',
+                    msg=Message.message('53', self.config['language'], subvolume, mountpoint))
+
+        # Removes the diskpw file.
+        if self.config['disk_encryption']:
+            Cmd(f'rm {str(self.diskpw)}', quiet=True)
+
+
+    def layout2(self, filesystem='BTRFS', swap_partition=False):
         # This layout uses 2 or 3 partitions: EFI; SWAP, if enabled (same size as RAM, for hibernation);
         # and SYSTEM, on the top of LUKS dm-crypt or not, holding root and home data, formatted as BTRFS and
         # Using subvolumes to manage snapshots of the current root and home contents.
@@ -33,6 +118,7 @@ class Partition:
         for index, device in enumerate(self.config["storage_devices"]):
             if index == 0:
                 # Create and format EFI partition.
+
                 Cmd(f'sgdisk '
                     f'--clear '
                     f'--new=1:0:+550MiB '
@@ -71,9 +157,6 @@ class Partition:
                     Cmd(f'mkfs.btrfs --force --label system{index} /dev/disk/by-partlabel/system{index}',
                         msg=Message.message('87', self.config['language'], device, 'BTRFS'))
             system_partitions.append(f'/dev/disk/by-partlabel/system{index}')
-            # Convert GPT to MBR, if this is the case.
-            if self.sysinfo['firmware_interface'] == 'BIOS':
-                Cmd(f'sgdisk -m {device}')
 
         if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
