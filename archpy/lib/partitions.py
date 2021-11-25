@@ -66,6 +66,9 @@ class Partition:
                 )
                 system_partitions.append(f'{device}1')
 
+        print(system_partitions)
+        exit()
+
         if filesystem == 'BTRFS':
             if self.config['disk_encryption']:
                 Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
@@ -80,8 +83,7 @@ class Partition:
                 f'{" ".join(system_partitions)}',
                 msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
 
-        print(system_partitions)
-        exit()
+
         # Handles the disk encryption.
         # for partition in self.system_partitions:
         #
