@@ -66,23 +66,19 @@ class Partition:
                 )
                 system_partitions.append(f'{device}1')
 
-        print(system_partitions)
-        exit()
-
-        if filesystem == 'BTRFS':
-            if self.config['disk_encryption']:
-                Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
-                    msg=Message.message('87', self.config['language'], device, 'BTRFS'))
-            else:
-                Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
-                    msg=Message.message('87', self.config['language'], device, 'BTRFS'))
-        system_partitions.append(f'{device}2')
+        for index, partition in enumerate(system_partitions):
+            if filesystem == 'BTRFS':
+                if self.config['disk_encryption']:
+                    Cmd(f'mkfs.btrfs --force --label system{index} {partition}',
+                        msg=Message.message('87', self.config['language'], partition, filesystem))
+                else:
+                    Cmd(f'mkfs.btrfs --force --label system{index} {partition}',
+                        msg=Message.message('87', self.config['language'], partition, filesystem))
 
         if self.config['raid'] and filesystem == 'BTRFS':
             Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
                 f'{" ".join(system_partitions)}',
                 msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
-
 
         # Handles the disk encryption.
         # for partition in self.system_partitions:
