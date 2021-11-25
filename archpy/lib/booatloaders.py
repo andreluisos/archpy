@@ -45,5 +45,5 @@ class Bootloader:
     def grub(self):
         Cmd(f'arch-chroot /mnt pacman -Sq --noconfirm grub',
             msg=Message.message('90', self.config['language'], Message.message('77', self.config['language'])))
-        Cmd(f'grub-install {self.config["storage_devices"][0]}')
-        Cmd('grub-mkconfig -o /boot/grub/grub.cfg')
+        Cmd(f'arch-chroot /mnt grub-install {self.config["storage_devices"][0]}')
+        Cmd('arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg')
