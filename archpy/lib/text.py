@@ -511,6 +511,25 @@ class Message:
                 "pt_BR": "Instalando GRUB",
             },
 
+            "91": {
+                "en_US": f"Creating {args[2] if len(args) > 2 else None} partition table on "
+                         f"{args[3] if len(args) > 3 else None}",
+                "pt_BR": f"Criando tabela de partição {args[2] if len(args) > 2 else None} "
+                         f"em {args[3] if len(args) > 3 else None}",
+            },
+
+            "92": {
+                "en_US": f"Creating {args[2] if len(args) > 2 else None} partition on "
+                         f"{args[3] if len(args) > 3 else None}",
+                "pt_BR": f"Criando partição {args[2] if len(args) > 2 else None} "
+                         f"em {args[3] if len(args) > 3 else None}",
+            },
+
+            "93": {
+                "en_US": f"Making {args[2] if len(args) > 2 else None} a bootable partition",
+                "pt_BR": f"Transformando {args[2] if len(args) > 2 else None} em partição bootável",
+            },
+
         }
 
         return messages[args[0]][args[1]]

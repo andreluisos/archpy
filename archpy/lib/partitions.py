@@ -9,16 +9,17 @@ class Partition:
         self.diskpw = diskpw
         self.sysinfo = SystemInfo().sysinfo
 
-    @staticmethod
-    def mklabel(device: str, label: str):
-        Cmd(f'parted -s {device} -s mklabel {label}')
+    def mklabel(self, device: str, label: str):
+        Cmd(f'parted -s {device} -s mklabel {label}',
+            msg=Message.message('91', self.config['language'], label, device))
 
-    @staticmethod
-    def mkpart(device: str, pformat: str, start_size: str, end_size: str, align='optimal'):
-        Cmd(f'parted -s {device} -s -a {align} mkpart primary {pformat} {start_size} {end_size}')
+    def mkpart(self, device: str, pformat: str, start_size: str, end_size: str, align='optimal'):
+        Cmd(f'parted -s {device} -s -a {align} mkpart primary {pformat} {start_size} {end_size}',
+            msg=Message.message('92', self.config['language'], pformat, device))
 
     def set_boot(self, device: str, part: int):
-        Cmd(f'parted -s {device} -s set {part} {"boot" if self.sysinfo["firmware_interface"] == "BIOS" else "esp"} on')
+        Cmd(f'parted -s {device} -s set {part} {"boot" if self.sysinfo["firmware_interface"] == "BIOS" else "esp"} on',
+            msg=Message.message('93', self.config['language'], f'{device}{part}'))
 
     def wipe(self):
         # Erases everything in the disk to prevent partitioning errors.
@@ -65,19 +66,19 @@ class Partition:
                 )
                 system_partitions.append(f'{device}1')
 
-        # if filesystem == 'BTRFS':
-        #     if self.config['disk_encryption']:
-        #         Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
-        #             msg=Message.message('87', self.config['language'], device, 'BTRFS'))
-        #     else:
-        #         Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
-        #             msg=Message.message('87', self.config['language'], device, 'BTRFS'))
-        # system_partitions.append(f'{device}2')
-        #
-        # if self.config['raid'] and filesystem == 'BTRFS':
-        #     Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
-        #         f'{" ".join(system_partitions)}',
-        #         msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
+        if filesystem == 'BTRFS':
+            if self.config['disk_encryption']:
+                Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
+                    msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+            else:
+                Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
+                    msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+        system_partitions.append(f'{device}2')
+
+        if self.config['raid'] and filesystem == 'BTRFS':
+            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
+                f'{" ".join(system_partitions)}',
+                msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
 
         print(system_partitions)
         exit()
