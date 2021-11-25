@@ -46,28 +46,38 @@ class Partition:
                     '1MiB',
                     '550MiB'
                 )
+                Cmd(f'mkfs.fat -F32 -n EFI {device}1',
+                    msg=Message.message('52', self.config['language'], 'EFI', 'FAT32'))
                 self.set_boot(device, 1)
-                # Cmd(f'mkfs.fat -F32 -n EFI {device}1',
-                #     msg=Message.message('52', self.config['language'], 'EFI', 'FAT32'))
-            self.mkpart(
-                device,
-                filesystem.lower(),
-                '551MiB',
-                '100%'
-            )
-            if filesystem == 'BTRFS':
-                if self.config['disk_encryption']:
-                    Cmd(f'mkfs.btrfs --force --label system{index} {device}1',
-                        msg=Message.message('87', self.config['language'], device, 'BTRFS'))
-                else:
-                    Cmd(f'mkfs.btrfs --force --label system{index} {device}1',
-                        msg=Message.message('87', self.config['language'], device, 'BTRFS'))
-            system_partitions.append(f'{device}1')
+                self.mkpart(
+                    device,
+                    filesystem.lower(),
+                    '551MiB',
+                    '100%'
+                )
+                system_partitions.append(f'{device}2')
+            else:
+                self.mkpart(
+                    device,
+                    filesystem.lower(),
+                    '1MiB',
+                    '100%'
+                )
+                system_partitions.append(f'{device}1')
 
-        if self.config['raid'] and filesystem == 'BTRFS':
-            Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
-                f'{" ".join(system_partitions)}',
-                msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
+        # if filesystem == 'BTRFS':
+        #     if self.config['disk_encryption']:
+        #         Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
+        #             msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+        #     else:
+        #         Cmd(f'mkfs.btrfs --force --label system{index} {device}2',
+        #             msg=Message.message('87', self.config['language'], device, 'BTRFS'))
+        # system_partitions.append(f'{device}2')
+        #
+        # if self.config['raid'] and filesystem == 'BTRFS':
+        #     Cmd(f'mkfs.btrfs -L {self.config["hostname"]} -d {self.config["raid"]} -m {self.config["raid"]} -f '
+        #         f'{" ".join(system_partitions)}',
+        #         msg=Message.message('83', self.config['language'], " ".join(self.config["storage_devices"])))
 
         print(system_partitions)
         exit()
@@ -81,33 +91,32 @@ class Partition:
         #         msg=Message.message('49', self.config['language'], '/dev/disk/by-partlabel/system0'))
 
         # Handles BTRFS partitioning and subvolumes.
-        if filesystem == 'BTRFS':
-            Cmd(f'mount -t btrfs {system_partitions[0]} /mnt',
-                msg=Message.message('86', self.config['language'], '/mnt'))
-            Cmd(f'btrfs subvolume create /mnt/root',
-                msg=Message.message('54', self.config['language'], '/mnt/root'))
-            Cmd(f'btrfs subvolume create /mnt/home',
-                msg=Message.message('54', self.config['language'], '/mnt/home'))
-            Cmd(f'btrfs subvolume create /mnt/snapshots',
-                msg=Message.message('54', self.config['language'], '/mnt/snapshots'))
-            Cmd(f'umount -R /mnt',
-                msg=Message.message('55', self.config['language']))
-            mountpoint = None
-            for subvolume in ['root', 'home', 'snapshots']:
-                if subvolume == 'root':
-                    mountpoint = '/mnt'
-                if subvolume == 'home':
-                    mountpoint = '/mnt/home'
-                if subvolume == 'snapshots':
-                    mountpoint = '/mnt/.snapshots'
-                Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
-                    f'{system_partitions[0]} {mountpoint}',
-                    msg=Message.message('53', self.config['language'], subvolume, mountpoint))
-
-        # Removes the diskpw file.
-        if self.config['disk_encryption']:
-            Cmd(f'rm {str(self.diskpw)}', quiet=True)
-
+        # if filesystem == 'BTRFS':
+        #     Cmd(f'mount -t btrfs {system_partitions[0]} /mnt',
+        #         msg=Message.message('86', self.config['language'], '/mnt'))
+        #     Cmd(f'btrfs subvolume create /mnt/root',
+        #         msg=Message.message('54', self.config['language'], '/mnt/root'))
+        #     Cmd(f'btrfs subvolume create /mnt/home',
+        #         msg=Message.message('54', self.config['language'], '/mnt/home'))
+        #     Cmd(f'btrfs subvolume create /mnt/snapshots',
+        #         msg=Message.message('54', self.config['language'], '/mnt/snapshots'))
+        #     Cmd(f'umount -R /mnt',
+        #         msg=Message.message('55', self.config['language']))
+        #     mountpoint = None
+        #     for subvolume in ['root', 'home', 'snapshots']:
+        #         if subvolume == 'root':
+        #             mountpoint = '/mnt'
+        #         if subvolume == 'home':
+        #             mountpoint = '/mnt/home'
+        #         if subvolume == 'snapshots':
+        #             mountpoint = '/mnt/.snapshots'
+        #         Cmd(f'mount -t btrfs -o subvol={subvolume},defaults,x-mount.mkdir,compress=lzo,ssd,noatime '
+        #             f'{system_partitions[0]} {mountpoint}',
+        #             msg=Message.message('53', self.config['language'], subvolume, mountpoint))
+        #
+        # # Removes the diskpw file.
+        # if self.config['disk_encryption']:
+        #     Cmd(f'rm {str(self.diskpw)}', quiet=True)
 
     def layout2(self, filesystem='BTRFS', swap_partition=False):
         # This layout uses 2 or 3 partitions: EFI; SWAP, if enabled (same size as RAM, for hibernation);
