@@ -502,8 +502,8 @@ class Message:
             },
 
             "89": {
-                "en_US": "Bootloader:",
-                "pt_BR": "Bootloader:",
+                "en_US": f"Bootloader: {args[2] if len(args) > 2 else None}",
+                "pt_BR": f"Bootloader: {args[2] if len(args) > 2 else None}",
             },
 
             "90": {
