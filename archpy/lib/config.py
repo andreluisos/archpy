@@ -106,7 +106,7 @@ class Config:
         if self.sysinfo['firmware_interface'] == 'BIOS':
             self.config['bootloader'] = 'GRUB'
         else:
-            self.config['bootloader'] = list_input(Message.message('88', self.config['bootloader']),
+            self.config['bootloader'] = list_input(Message.message('88'),
                                                    choices=self.available_bootloaders,
                                                    default='systemd-boot')
 
